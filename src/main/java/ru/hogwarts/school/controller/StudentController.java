@@ -1,20 +1,23 @@
 package ru.hogwarts.school.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 
 @RestController
-@RequestMapping("student")
+@RequestMapping("/student")
 public class StudentController {
 
     private final StudentService studentService;
-    @Autowired
+
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
@@ -25,7 +28,16 @@ public class StudentController {
         if (student != null) {
             return ResponseEntity.ok(student);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    @GetMapping("{id}/faculty")
+    public ResponseEntity<Faculty> getStudentFaculty(@PathVariable Long id) {
+        Student student = studentService.findStudent(id);
+        if (student != null) {
+            return ResponseEntity.ok(student.getFaculty());
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @PostMapping()
@@ -39,7 +51,7 @@ public class StudentController {
         if (editedStudent != null) {
             return ResponseEntity.ok(editedStudent);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @DeleteMapping({"{id}"})
@@ -49,7 +61,18 @@ public class StudentController {
     }
 
     @GetMapping()
-    public Collection<Student> getStudentsByAge(@RequestParam(value = "age") int age) {
-        return studentService.getStudentsByAge(age);
+    public Collection<Student> getStudentsByAge(@RequestParam(required = false, value = "age") @Nullable Integer age,
+                                                @RequestParam(required = false, value = "startAge") @Nullable Integer startAge,
+                                                @RequestParam(required = false, value = "endAge") @Nullable Integer endAge) {
+        if (Objects.nonNull(age) && age > 0) {
+            return studentService.getStudentsByAge(age);
+        }
+
+        if (Objects.nonNull(startAge) && Objects.nonNull(endAge)
+                && startAge > 0 && endAge > 0 && startAge <= endAge) {
+            return studentService.getStudentsByAgeBetween(startAge, endAge);
+        }
+
+        return Collections.emptyList();
     }
 }

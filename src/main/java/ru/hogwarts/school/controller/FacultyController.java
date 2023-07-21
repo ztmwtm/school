@@ -1,17 +1,20 @@
 package ru.hogwarts.school.controller;
 
+import jakarta.annotation.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.FacultyService;
 
 import java.util.Collection;
+import java.util.Objects;
 
 @RestController
-@RequestMapping("faculty")
+@RequestMapping("/faculty")
 public class FacultyController {
-    
+
     private final FacultyService facultyService;
 
     public FacultyController(FacultyService facultyService) {
@@ -24,7 +27,16 @@ public class FacultyController {
         if (faculty != null) {
             return ResponseEntity.ok(faculty);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    @GetMapping("{id}/students")
+    public ResponseEntity<Collection<Student>> getStudentFaculty(@PathVariable Long id) {
+        Faculty faculty = facultyService.findFaculty(id);
+        if (faculty != null) {
+            return ResponseEntity.ok(faculty.getStudents());
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @PostMapping()
@@ -38,7 +50,7 @@ public class FacultyController {
         if (editedFaculty != null) {
             return ResponseEntity.ok(editedFaculty);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @DeleteMapping({"{id}"})
@@ -48,7 +60,15 @@ public class FacultyController {
     }
 
     @GetMapping()
-    public Collection<Faculty> getStudentsByAge(@RequestParam(value = "color") String color) {
-        return facultyService.getFacultyByColor(color);
+    public Faculty getFacultyByNameOrColor(@RequestParam(required = false, value = "color") @Nullable String color,
+                                           @RequestParam(required = false, value = "name") @Nullable String name) {
+        Faculty result = null;
+        if (Objects.nonNull(name)) {
+            result = facultyService.getFacultyByName(name);
+        }
+        if (Objects.isNull(result) && Objects.nonNull(color)) {
+            result = facultyService.getFacultyByColor(color);
+        }
+        return result;
     }
 }

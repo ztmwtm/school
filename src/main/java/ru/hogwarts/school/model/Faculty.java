@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Collection;
+import java.util.Objects;
 
 @Entity
 public class Faculty {
@@ -54,5 +55,22 @@ public class Faculty {
 
     public Collection<Student> getStudents() {
         return students;
+    }
+
+    public void setStudents(Collection<Student> students) {
+        this.students = students;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Faculty faculty = (Faculty) o;
+        return Objects.equals(name, faculty.name) && Objects.equals(color, faculty.color);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, color);
     }
 }

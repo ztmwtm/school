@@ -27,8 +27,8 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    public void deleteStudent(long id) {
-        studentRepository.deleteById(id);
+    public boolean deleteStudent(long id) {
+         return studentRepository.deleteStudentById(id);
     }
 
     public Collection<Student> getStudentsByAge(int age) {

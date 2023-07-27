@@ -41,8 +41,8 @@ public class StudentController {
     }
 
     @PostMapping()
-    public Student createStudent(@RequestBody Student student) {
-        return studentService.createStudent(student);
+    public ResponseEntity<Student> createStudent(@RequestBody Student student) {
+        return ResponseEntity.ok(studentService.createStudent(student));
     }
 
     @PutMapping()
@@ -56,23 +56,22 @@ public class StudentController {
 
     @DeleteMapping({"{id}"})
     public ResponseEntity<Object> deleteStudent(@PathVariable Long id) {
-        studentService.deleteStudent(id);
-        return ResponseEntity.ok().build();
+        return studentService.deleteStudent(id) ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
     @GetMapping()
-    public Collection<Student> getStudentsByAge(@RequestParam(required = false, value = "age") @Nullable Integer age,
+    public ResponseEntity<Collection<Student>> getStudentsByAge(@RequestParam(required = false, value = "age") @Nullable Integer age,
                                                 @RequestParam(required = false, value = "startAge") @Nullable Integer startAge,
                                                 @RequestParam(required = false, value = "endAge") @Nullable Integer endAge) {
         if (Objects.nonNull(age) && age > 0) {
-            return studentService.getStudentsByAge(age);
+            return ResponseEntity.ok(studentService.getStudentsByAge(age));
         }
 
         if (Objects.nonNull(startAge) && Objects.nonNull(endAge)
                 && startAge > 0 && endAge > 0 && startAge <= endAge) {
-            return studentService.getStudentsByAgeBetween(startAge, endAge);
+            return ResponseEntity.ok(studentService.getStudentsByAgeBetween(startAge, endAge));
         }
 
-        return Collections.emptyList();
+        return ResponseEntity.ok(Collections.emptyList());
     }
 }

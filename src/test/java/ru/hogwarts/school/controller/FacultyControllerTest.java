@@ -2,7 +2,9 @@ package ru.hogwarts.school.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -64,21 +65,26 @@ class FacultyControllerTest {
     static final int studentOneAge = 16;
     static final int studentTwoAge = 17;
 
+    private Faculty faculty;
 
-    @Test
-    void getFacultyInfo() throws Exception {
+    private JSONObject jsonObject;
 
-        Faculty faculty = new Faculty();
+    @BeforeEach
+    void init() throws JSONException {
+        faculty = new Faculty();
         faculty.setId(id);
         faculty.setName(name);
         faculty.setColor(color);
 
 
-        JSONObject jsonObject = new JSONObject();
+        jsonObject = new JSONObject();
         jsonObject.put("id", id);
         jsonObject.put("name", name);
         jsonObject.put("color", color);
+    }
 
+    @Test
+    void getFacultyInfo() throws Exception {
 
         when(facultyRepository.findById(id)).thenReturn(Optional.of(faculty));
         when(facultyRepository.findById(invalidId)).thenReturn(Optional.empty());
@@ -88,16 +94,11 @@ class FacultyControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .content(jsonObject.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.name").value(name))
-                .andExpect(jsonPath("$.color").value(color))
                 .andExpect(result -> {
                     Faculty facultyResult = objectMapper.readValue(
                             result.getResponse().getContentAsString(), Faculty.class);
                     assertThat(facultyResult).isNotNull();
-                    assertThat(facultyResult.getId()).isEqualTo(id);
-                    assertThat(facultyResult.getName()).isEqualTo(name);
-                    assertThat(facultyResult.getColor()).isEqualTo(color);
+                    assertThat(facultyResult).isEqualTo(faculty);
                 });
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -112,11 +113,6 @@ class FacultyControllerTest {
 
     @Test
     void getStudentFaculty() throws Exception {
-        Faculty faculty = new Faculty();
-        faculty.setId(id);
-        faculty.setName(name);
-        faculty.setColor(color);
-
         Student student1 = new Student();
         student1.setId(studentOneId);
         student1.setName(studentOneName);
@@ -164,45 +160,24 @@ class FacultyControllerTest {
 
     @Test
     void createFaculty() throws Exception {
-
-        Faculty faculty = new Faculty();
-        faculty.setId(id);
-        faculty.setName(name);
-        faculty.setColor(color);
-
-
-        JSONObject facultyObject = new JSONObject();
-        facultyObject.put("id", id);
-        facultyObject.put("name", name);
-        facultyObject.put("color", color);
-
         when(facultyRepository.save(any(Faculty.class))).thenReturn(faculty);
-
 
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/faculty")
-                        .content(facultyObject.toString())
+                        .content(jsonObject.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.name").value(name))
-                .andExpect(jsonPath("$.color").value(color));
+                .andExpect(result -> {
+                    Faculty facultyResult = objectMapper.readValue(
+                            result.getResponse().getContentAsString(), Faculty.class);
+                    assertThat(facultyResult).isNotNull();
+                    assertThat(facultyResult).isEqualTo(faculty);
+                });
     }
 
     @Test
     void editFaculty() throws Exception {
-        Faculty faculty = new Faculty();
-        faculty.setId(id);
-        faculty.setName(name);
-        faculty.setColor(color);
-
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", id);
-        jsonObject.put("name", name);
-        jsonObject.put("color", color);
-
         when(facultyRepository.findById(id)).thenReturn(Optional.of(faculty));
         when(facultyRepository.save(any(Faculty.class))).thenReturn(faculty);
 
@@ -212,9 +187,12 @@ class FacultyControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .content(jsonObject.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.name").value(name))
-                .andExpect(jsonPath("$.color").value(color));
+                .andExpect(result -> {
+                    Faculty facultyResult = objectMapper.readValue(
+                            result.getResponse().getContentAsString(), Faculty.class);
+                    assertThat(facultyResult).isNotNull();
+                    assertThat(facultyResult).isEqualTo(faculty);
+                });
 
         Faculty facultyEdited = new Faculty();
         facultyEdited.setId(id);
@@ -235,26 +213,16 @@ class FacultyControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .content(jsonObjectEdited.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.name").value(editedName))
-                .andExpect(jsonPath("$.color").value(editedColor));
-
+                .andExpect(result -> {
+                    Faculty facultyResult = objectMapper.readValue(
+                            result.getResponse().getContentAsString(), Faculty.class);
+                    assertThat(facultyResult).isNotNull();
+                    assertThat(facultyResult).isEqualTo(facultyEdited);
+                });
     }
 
     @Test
     void deleteFaculty() throws Exception {
-
-        Faculty faculty = new Faculty();
-        faculty.setId(id);
-        faculty.setName(name);
-        faculty.setColor(color);
-
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", id);
-        jsonObject.put("name", name);
-        jsonObject.put("color", color);
-
         when(facultyRepository.findById(id)).thenReturn(Optional.of(faculty));
         when(facultyRepository.deleteFacultyById(id)).thenReturn(true);
         when(facultyRepository.deleteFacultyById(invalidId)).thenReturn(false);
@@ -276,17 +244,6 @@ class FacultyControllerTest {
 
     @Test
     void getFacultyByNameOrColor() throws Exception {
-        Faculty faculty = new Faculty();
-        faculty.setId(id);
-        faculty.setName(name);
-        faculty.setColor(color);
-
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", id);
-        jsonObject.put("name", name);
-        jsonObject.put("color", color);
-
         when(facultyRepository.findFacultyByNameIgnoreCase(name)).thenReturn(Optional.of(faculty));
         when(facultyRepository.findFacultyByColorIgnoreCase(color)).thenReturn(Optional.of(faculty));
         when(facultyRepository.findFacultyByNameIgnoreCase(invalidName)).thenReturn(Optional.empty());
@@ -298,9 +255,12 @@ class FacultyControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .content(jsonObject.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.name").value(name))
-                .andExpect(jsonPath("$.color").value(color));
+                .andExpect(result -> {
+                    Faculty facultyResult = objectMapper.readValue(
+                            result.getResponse().getContentAsString(), Faculty.class);
+                    assertThat(facultyResult).isNotNull();
+                    assertThat(facultyResult).isEqualTo(faculty);
+                });
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/faculty?name=" + name)
@@ -308,9 +268,12 @@ class FacultyControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .content(jsonObject.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.name").value(name))
-                .andExpect(jsonPath("$.color").value(color));
+                .andExpect(result -> {
+                    Faculty facultyResult = objectMapper.readValue(
+                            result.getResponse().getContentAsString(), Faculty.class);
+                    assertThat(facultyResult).isNotNull();
+                    assertThat(facultyResult).isEqualTo(faculty);
+                });
 
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/faculty?color=" + invalidColor)

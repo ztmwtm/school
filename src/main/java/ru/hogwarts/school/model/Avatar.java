@@ -1,20 +1,28 @@
 package ru.hogwarts.school.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.springframework.web.util.UriComponentsBuilder;
+import ru.hogwarts.school.controller.AvatarController;
 
 @Entity
 public class Avatar {
     @Id
     @GeneratedValue
     Long id;
+    @JsonIgnore
     private String filePath;
     private long fileSize;
     private String mediaType;
+    private String url;
+    @JsonIgnore
     private byte[] data;
     @Lob
+    @JsonIgnore
     private byte[] preview;
 
     @OneToOne
+    @JsonIgnore
     private Student student;
 
     public Long getId() {
@@ -71,5 +79,14 @@ public class Avatar {
 
     public void setPreview(byte[] preview) {
         this.preview = preview;
+    }
+
+    public String getUrl() {
+        return UriComponentsBuilder.newInstance()
+                .scheme("http")
+                .host("localhost")
+                .port(System.getProperty("server.port", "8080"))
+                .pathSegment(AvatarController.BASE_PATH, id.toString())
+                .toUriString();
     }
 }

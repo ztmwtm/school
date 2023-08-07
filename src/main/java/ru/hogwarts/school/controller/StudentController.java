@@ -10,6 +10,7 @@ import ru.hogwarts.school.service.StudentService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -30,6 +31,22 @@ public class StudentController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+
+    @GetMapping("/amount")
+    public ResponseEntity<Integer> getStudentAmount() {
+        return ResponseEntity.ok(studentService.getTotalAmount());
+    }
+
+    @GetMapping("/age/average")
+    public ResponseEntity<Double> getStudentAverageAge() {
+        return ResponseEntity.ok(studentService.getAverageAge());
+    }
+
+    @GetMapping("/last/{count}")
+    public ResponseEntity<List<Student>> getLastStudents(@PathVariable int count) {
+        return ResponseEntity.ok(studentService.getLastStudents(count));
+    }
+
 
     @GetMapping("{id}/faculty")
     public ResponseEntity<Faculty> getStudentFaculty(@PathVariable Long id) {

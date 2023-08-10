@@ -97,12 +97,13 @@ public class FacultyController {
     @GetMapping("/stream")
     public ResponseEntity<Integer> streamTest() {
         logger.info("Was invoked method for stream test");
-                long start = System.nanoTime();
+                long nanoTime = System.nanoTime();
                 Integer result = Stream.iterate(1, a -> a + 1)
                         .parallel()
                         .limit(1_000_000)
                         .reduce(0, Integer::sum);
-                logger.info("Completed in {} nano", System.nanoTime() - start);
+                nanoTime = System.nanoTime() - nanoTime;
+                logger.info("Completed in {} second", nanoTime / 1_000_000_000);
         return ResponseEntity.ok(result);
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.repository.FacultyRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,6 +43,10 @@ public class FacultyService {
 
     public Optional<Faculty> getFacultyByName(String name) {
         return facultyRepository.findFacultyByNameIgnoreCase(name);
+    }
+
+    public List<Faculty> getAllFaculties() {
+        return facultyRepository.findAll();
     }
 
 }

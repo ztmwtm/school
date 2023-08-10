@@ -13,6 +13,7 @@ import ru.hogwarts.school.service.FacultyService;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/faculty")
@@ -71,7 +72,7 @@ public class FacultyController {
 
     @GetMapping()
     public ResponseEntity<Faculty> getFacultyByNameOrColor(@RequestParam(required = false, value = "color") @Nullable String color,
-                                                     @RequestParam(required = false, value = "name") @Nullable String name) {
+                                                           @RequestParam(required = false, value = "name") @Nullable String name) {
         logger.info("Was invoked method for get faculty by name or color");
         Optional<Faculty> result = Optional.empty();
         if (Objects.nonNull(name)) {
@@ -81,5 +82,27 @@ public class FacultyController {
             result = facultyService.getFacultyByColor(color);
         }
         return result.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/longestName")
+    public ResponseEntity<String> getLongestFacultyName() {
+        logger.info("Was invoked method for get longest faculty name");
+        return ResponseEntity.ok(
+                facultyService.getAllFaculties().stream()
+                        .map(Faculty::getName)
+                        .reduce((s1, s2) -> s1.length() > s2.length() ? s1 : s2)
+                        .orElse(null));
+    }
+
+    @GetMapping("/stream")
+    public ResponseEntity<Integer> streamTest() {
+        logger.info("Was invoked method for stream test");
+                long start = System.nanoTime();
+                Integer result = Stream.iterate(1, a -> a + 1)
+                        .parallel()
+                        .limit(1_000_000)
+                        .reduce(0, Integer::sum);
+                logger.info("Completed in {} nano", System.nanoTime() - start);
+        return ResponseEntity.ok(result);
     }
 }

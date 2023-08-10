@@ -45,7 +45,12 @@ public class StudentController {
     @GetMapping("/age/average")
     public ResponseEntity<Double> getStudentAverageAge() {
         logger.info("Was invoked method for get students average age");
-        return ResponseEntity.ok(studentService.getAverageAge());
+        return ResponseEntity.ok(
+                studentService.getAllStudents().stream()
+                        .mapToInt(Student::getAge)
+                        .average()
+                        .orElse(0)
+        );
     }
 
     @GetMapping("/last/{count}")
@@ -102,5 +107,17 @@ public class StudentController {
         }
 
         return ResponseEntity.ok(Collections.emptyList());
+    }
+
+    @GetMapping("/names/{char}")
+    public ResponseEntity<List<String>> getStudentsNamesSorted(@PathVariable("char") String ch) {
+        logger.info("Was invoked method for get students by name");
+        return ResponseEntity.ok(
+                studentService.getAllStudents().stream()
+                        .map(Student::getName)
+                        .map(String::toUpperCase)
+                        .filter(s -> s.startsWith(ch.toUpperCase()))
+                        .sorted()
+                        .toList());
     }
 }

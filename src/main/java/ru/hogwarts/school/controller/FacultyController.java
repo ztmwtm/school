@@ -103,7 +103,7 @@ public class FacultyController {
                         .limit(1_000_000)
                         .reduce(0, Integer::sum);
                 nanoTime = System.nanoTime() - nanoTime;
-                logger.info("Completed in {} milliseconds", nanoTime / 1_000_000);
+                logger.info("Completed in {} milliseconds", (double) nanoTime / 1_000_000);
         return ResponseEntity.ok(result);
     }
 }

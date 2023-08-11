@@ -50,4 +50,8 @@ public class StudentService {
     public List<Student> getLastStudents(int count) {
         return studentRepository.getLastStudents(count);
     }
+
+    public List<Student> getAllStudents() {
+        return studentRepository.findAll();
+    }
 }

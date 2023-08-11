@@ -1,6 +1,8 @@
 package ru.hogwarts.school.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +25,7 @@ import static ru.hogwarts.school.controller.AvatarController.BASE_PATH;
 @RequestMapping("/" + BASE_PATH)
 public class AvatarController {
 
+    Logger logger = LoggerFactory.getLogger(AvatarController.class);
     public static final String BASE_PATH="avatar";
     private final AvatarService avatarService;
 
@@ -32,6 +35,7 @@ public class AvatarController {
 
     @PostMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadAvatar(@PathVariable Long id, @RequestParam MultipartFile avatar) throws IOException {
+        logger.info("Was invoked method for create avatar");
         if (avatar.getSize() > 1920 * 1080) {
             return ResponseEntity.badRequest().body("File too big");
         }
@@ -41,23 +45,25 @@ public class AvatarController {
 
     @GetMapping(value = "/{id}/preview")
     public ResponseEntity<byte[]> showAvatarPreview(@PathVariable Long id) {
+        logger.info("Was invoked method for get avatar preview");
         Avatar avatar = avatarService.findAvatarById(id);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(avatar.getMediaType()));
         headers.setContentLength(avatar.getPreview().length);
-
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(avatar.getPreview());
     }
 
     @GetMapping(value = "")
     public ResponseEntity<List<Avatar>> showAllAvatars(@RequestParam(value = "page", required = false, defaultValue = "1") int pageNumber,
                                                        @RequestParam(value = "size", required = false, defaultValue = "1") int pageSize) {
+        logger.info("Was invoked method for get avatars by paging");
         return ResponseEntity.ok(avatarService.findAllAvatars(pageNumber, pageSize));
     }
 
     @GetMapping(value = "/{id}")
     public void showAvatar(@PathVariable Long id, HttpServletResponse response) throws IOException {
+        logger.info("Was invoked method for get avatar");
         Avatar avatar = avatarService.findAvatarById(id);
 
         Path path = Path.of(avatar.getFilePath());

@@ -10,10 +10,9 @@ import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @RestController
 @RequestMapping("/student")
@@ -120,4 +119,41 @@ public class StudentController {
                         .sorted()
                         .toList());
     }
+
+    @GetMapping("/all/parallel")
+    public void printStudentsParallel() {
+        List<Student> students = studentService.getAllStudents();
+        ExecutorService service = Executors.newFixedThreadPool(3);
+        logger.info("ORIGINAL ORDER:");
+        students.forEach(s -> logger.info(s.toString()));
+
+        logger.info("THREADS ORDER:");
+        for (int i = 0; i < students.size() - 1; i += 2) {
+            int finalI = i;
+            service.execute(() -> {
+                logger.info(students.get(finalI).toString());
+                logger.info(students.get(finalI + 1).toString());
+            });
+        }
+    }
+
+    @GetMapping("/all/ordered")
+    public void printStudentsOrdered() {
+        List<Student> students = studentService.getAllStudents();
+        ExecutorService service = Executors.newSingleThreadExecutor();
+        logger.info("ORIGINAL ORDER:");
+        students.forEach(s -> logger.info(s.toString()));
+
+        logger.info("THREADS ORDER:");
+
+        for (int i = 0; i < students.size() - 1; i += 2) {
+            int finalI = i;
+            service.execute(() -> {
+                logger.info(students.get(finalI).toString());
+                logger.info(students.get(finalI + 1).toString());
+            });
+        }
+    }
+
+
 }

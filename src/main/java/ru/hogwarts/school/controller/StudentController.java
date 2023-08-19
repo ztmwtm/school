@@ -11,8 +11,6 @@ import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @RestController
 @RequestMapping("/student")
@@ -123,36 +121,47 @@ public class StudentController {
     @GetMapping("/all/parallel")
     public void printStudentsParallel() {
         List<Student> students = studentService.getAllStudents();
-        ExecutorService service = Executors.newFixedThreadPool(3);
+
         logger.info("ORIGINAL ORDER:");
         students.forEach(s -> logger.info(s.toString()));
-
         logger.info("THREADS ORDER:");
-        for (int i = 0; i < students.size() - 1; i += 2) {
-            int finalI = i;
-            service.execute(() -> {
-                logger.info(students.get(finalI).toString());
-                logger.info(students.get(finalI + 1).toString());
-            });
-        }
+        printStudents(List.of(students.get(0), students.get(1)));
+
+        Thread thread2 = new Thread(() ->
+                printStudents(List.of(students.get(2), students.get(3))));
+        thread2.start();
+
+        Thread thread3 = new Thread(() ->
+                printStudents(List.of(students.get(4), students.get(5))));
+        thread3.start();
     }
 
     @GetMapping("/all/ordered")
     public void printStudentsOrdered() {
         List<Student> students = studentService.getAllStudents();
-        ExecutorService service = Executors.newSingleThreadExecutor();
         logger.info("ORIGINAL ORDER:");
         students.forEach(s -> logger.info(s.toString()));
 
         logger.info("THREADS ORDER:");
+        syncPrintStudents(List.of(students.get(0), students.get(1)));
 
-        for (int i = 0; i < students.size() - 1; i += 2) {
-            int finalI = i;
-            service.execute(() -> {
-                logger.info(students.get(finalI).toString());
-                logger.info(students.get(finalI + 1).toString());
-            });
+        Thread thread2 = new Thread(() ->
+                syncPrintStudents(List.of(students.get(2), students.get(3))));
+        thread2.start();
+
+        Thread thread3 = new Thread(() ->
+                syncPrintStudents(List.of(students.get(4), students.get(5))));
+        thread3.start();
+    }
+
+    private void printStudents (List<Student> students) {
+        for (Student student : students) {
+            logger.info("{}", student);
         }
+    }
+
+    private synchronized void syncPrintStudents (List<Student> students) {
+        printStudents(students);
     }
 
 
